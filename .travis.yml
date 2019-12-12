@@ -1,0 +1,19 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sene1/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run sene1/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t sene1/multi-client ./client
+  - docker build -t sene1/multi-nginx ./nginx
+  - docker build -t sene1/multi-server ./server
+  - docker build -t sene1/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push sene1/multi-client sene1/multi-nginx sene1/multi-server sene1/multi-worker
